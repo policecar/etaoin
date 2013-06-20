@@ -9,11 +9,10 @@ and [force-based label placement](http://bl.ocks.org/MoritzStefaner/1377729).
 ### Usage
 
 Open `index.html` in a browser (tested for Firefox Aurora 23.0a2), then use the file 
-selector to load some data from disk. The data should come in the following format:
+selector to load some data from disk. The data should formatted as follows:
 
-* one n-gram per line, space-separated
-* the n-gram's (absolute) count as last token
-* sorted alphabetically (use `$ sort filename > new_filename` if unsorted)
+* a single, space-separated n-gram per line followed by its (absolute) count
+* if sorted alphabetically, counts can be visualized correctly
 
 e.g. 
 
