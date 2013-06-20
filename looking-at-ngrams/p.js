@@ -6,7 +6,7 @@
 	n-grams and visualizes them as graph-like structures using D3.js.
 
 	The data are assumed to be space separated with the last column being
-	the counts; e.g. "look at [STH] 126258" or "seem to [SO] {to be} 123647".
+	the counts; e.g. "look at sth. 134" or "seem to sb. to be 123".
 
 	Special thanks go to Moritz Stefaner, as p.makeGraph() is 
 	adapted from https://gist.github.com/MoritzStefaner/1377729.
@@ -22,11 +22,10 @@ p = function() {
 		var lines = textString.split( '\n' );
 
 		var items = {};
-
 		var nodes = {};
+		var links = {};
 		var labelAnchors = [];
 		var labelAnchorLinks = [];
-		var links = [];
 
 		for ( var i = 0, l; l = lines[i]; i++ ) {
 			
@@ -47,12 +46,11 @@ p = function() {
 					continue;
 				}
 
-				// if node with same text and position exists, use that existing node, else create
+				// if node with same text, position and history exists,
+				// use that existing node, else create a new one
 				tmp = [ t, j ].join('_');
 				nodeKey += tmp + '_';
 				if ( nodes && nodeKey in nodes ) {
-					// if node with same label and position exists, 
-					// check if it is connected to same predecessor
 					node = nodes[nodeKey];
 				} else {
 					node = {
@@ -69,24 +67,29 @@ p = function() {
 				}
 				
 				if ( j > 0 ) { // the first token has no incoming links
-					links.push({
-						source : prev,
-						target : node,
-						weight : 1
-					});
+					// if link exists, leave it alone, else make a new one
+					// note: this condition is important for count visualization
+					if ( links && !(nodeKey in links) ) {
+						links[nodeKey] = {
+							source : prev,
+							target : node,
+							weight : 1,
+							count  : count
+						};
+					}
 				}
 				prev = node;
 			}
 		}
-		// turn nodes from {} to []
+		// turn nodes and links from {} to []
 		var nodeArray = [];
 		for( var key in nodes ) {
 			nodeArray.push( nodes[key] );
 		}
-		// var linkArray = [];
-		// for( var key in links ) {
-		// 	linkArray.push( links[key] );
-		// }		
+		var linkArray = [];
+		for( var key in links ) {
+			linkArray.push( links[key] );
+		}
 
 		// attach labels
 		for( var k = 0; k < nodeArray.length; k++ ) {
@@ -101,7 +104,7 @@ p = function() {
 		items.nodes = nodeArray;
 		items.labelAnchors = labelAnchors;
 		items.labelAnchorLinks = labelAnchorLinks;
-		items.links = links; //linkArray;
+		items.links = linkArray;
 
 		return items;
 	};
@@ -119,8 +122,9 @@ p = function() {
 		var labelDistance = 0;
 		var vis = d3.select("body").append("svg:svg").attr("width", w).attr("height", h);
 
+		// original settings: gravity 1, linkDistance 50, charge -3000
 		var force = d3.layout.force().size([w, h]).nodes(nodes).links(links)
-			.gravity(1).linkDistance(50).charge(-3000).linkStrength(function(x) {
+			.gravity(1).linkDistance(50).charge(-4000).linkStrength(function(x) {
 			return x.weight * 10
 		});
 
@@ -130,7 +134,17 @@ p = function() {
 			.gravity(0).linkDistance(0).linkStrength(8).charge(-100).size([w, h]);
 		force2.start();
 
-		var link = vis.selectAll("line.link").data(links).enter().append("svg:line").attr("class", "link").style("stroke", "#CCC");
+		var link = vis.selectAll("line.link").data(links).enter().append("svg:line").attr("class", "link")
+			.style("stroke", "#CCC"); //.style("stroke-width", "2");
+
+		// n-gram count visualization
+		// assumes that n-grams are sorted alphabetically and their counts normalized
+		link.style("stroke-width", function(l, i) { // in terms of stroke-width
+			return l.count * 5;
+		});
+		// link.style("stroke", function(l, i) { // in terms of link color
+		// 	return "rgb(100, " + l.count * 255 + ", 200)";
+		// });
 
 		var node = vis.selectAll("g.node").data(force.nodes()).enter().append("svg:g").attr("class", "node");
 		node.append("svg:circle").attr("r", 5).style("fill", "#555").style("stroke", "#FFF").style("stroke-width", 3);
@@ -141,9 +155,21 @@ p = function() {
 
 		var anchorNode = vis.selectAll("g.anchorNode").data(force2.nodes()).enter().append("svg:g").attr("class", "anchorNode");
 		anchorNode.append("svg:circle").attr("r", 0).style("fill", "#FFF");
-			anchorNode.append("svg:text").text(function(d, i) {
+		anchorNode.append("svg:text").text(function(d, i) {
 			return i % 2 == 0 ? "" : d.node.label
-		}).style("fill", "#555").style("font-family", "Arial").style("font-size", 12);
+			// return i % 2 != 0 ? (!d.node.pos ? d.node.label.toUpperCase() : d.node.label) : "";
+		}).style("fill", "#555").style("font-family", "Arial");//.style("font-size", 12);
+
+		// color node labels wrt rootness resp. distance from root node
+		anchorNode.selectAll("text").style("fill", function(d, i) {
+			// return !d.node.pos ? "#088A29" : "#555";
+			var g = (155 - Math.pow(3, d.node.pos+3));
+			g = (g > 0) ? g : 42;
+			return "rgb(1, " + g + ", 1)";
+		});
+		anchorNode.selectAll("text").style("font-size", function(d, i) {
+			return !d.node.pos ? "14px" : "12px";
+		});
 
 		var updateLink = function() {
 			this.attr("x1", function(d) {
