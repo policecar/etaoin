@@ -3,11 +3,12 @@
 	<head>
 		<meta charset="utf-8">
 		<title>n-gram viewer</title>
-		<!-- <script type="text/javascript" src="./d3.v3.min.js" charset="utf-8"></script> -->
+		<!-- <script type="text/javascript" src="js/d3.v3.min.js" charset="utf-8"></script> -->
 		<script type="text/javascript" src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
-		<script type="text/javascript" src="./p.js" charset="utf-8"></script>
+		<script type="text/javascript" src="js/p.js" charset="utf-8"></script>
+		<script type="text/javascript" src="js/json2solr.js"></script>
 	</head>
-	<body>
+	<body onload="document.f1.query.focus(); loadDummyData();">
 		<script type="text/javascript" charset="utf-8">
 			// test if this browser provides full support of the File API
 			if ( window.File && window.FileReader && window.FileList && window.Blob ) {
@@ -15,16 +16,79 @@
 			} else {
 				alert( "The File APIs are not fully supported in this browser." );
 			}
+
+			var loadDummyData = function() {
+
+				var dummyData = [
+					"take a bath 3",
+					"take a nap 6",
+					"take into account 1",
+					"take into court 1",
+					"take into custody 4",
+					"take sth. 723",
+					"take sth. for granted 314",
+				];
+				var data = p.processSearchResults( dummyData );
+				p.makeGraph( data );
+				document.getElementById("output").innerHTML = "<ul><li><strong>simple static example</li></ul>";
+			};
 		</script>
-		
-		<!-- a file selector -->
-		<input type="file" id="files" name="files[]" multiple /> <!-- accept="text/*" -->
-		<output id="output"></output>
+
+		<div id="main" style="padding:20px;">
+
+			<!-- a file selector -->
+			<div style="padding-top:10px;">
+				<input type="file" id="files" name="files[]" multiple /> <!-- accept="text/*" -->
+				<output id="output"></output>
+			</div>
+
+			<!-- a search form for Apache Solr integration -->
+			<div>
+				<form name="f1" onsubmit='xmlhttpPost("/solr/select"); return false;' align="center" style="display:none;">
+					<p>Search: 
+						<input id="query" name="query" type="text">
+						<input value="Go" type="submit">
+					</p>
+					<div id="result"style="width:70%; margin:auto;"></div>
+					<pre style="display:none;">Raw JSON String: <div id="raw"></div></pre>
+				</form>
+			</div>
+			
+			<div id="display"></div>
+
+		</div>
 
 		<script type="text/javascript" charset="utf-8">
+
+			function reset() {
+
+				d3.select("svg").remove(); // remove previous svg element
+				document.getElementById('output').innerHTML = "";
+				document.getElementById('result').innerHTML = "";
+			}
+
+			function onresponse(docs) {
+
+				reset();
+
+				if ( !docs.length ) {
+					document.getElementById('result').innerHTML = "<p>No results found.</p>";
+				}
+
+				var searchResults = [];
+				for ( var i = docs.length-1; i >= 0; i-- ) {
+					searchResults.push([ docs[i].ngram, docs[i].count ].join(' '));
+				}
+				var data = p.processSearchResults( searchResults );
+				p.makeGraph( data );
+	  		}
+
 			// handle on change events of the File selector
 			function handleFileSelect( evt ) {
-			
+				
+				reset();
+				document.getElementById('query').value = ""; // clear search field, too
+
 				var files = evt.target.files; // FileList object
 
 				// files is a FileList of File objects. List some properties.
@@ -34,22 +98,22 @@
 						f.size, ' bytes, last modified: ',
 						f.lastModifiedDate ? f.lastModifiedDate.toLocaleDateString() : 'n/a', '</li>');
 				}
-				document.getElementById( 'output' ).innerHTML = '<ul>' + output.join('') + '</ul>';
+				document.getElementById('output').innerHTML = '<ul>' + output.join('') + '</ul>';
 
 				for ( var i = 0, f; f = files[i]; i++ ) {
 
 					var reader = new FileReader();
 
-					reader.onload = (function( theFile ) {
+					reader.onload = (function(theFile) {
 						return function(e) {
-							var data = p.processFileContent( e.target.result );
-							p.makeGraph( data );
+							var data = p.processFileContent(e.target.result);
+							p.makeGraph(data);
 						};
 					})(f);
-					reader.readAsText( f, "UTF-8" ); // utf-8 is the default but to be most explicit
+					reader.readAsText(f, "UTF-8"); // utf-8 is the default but to be most explicit
 				}
 			}
-			document.getElementById( 'files' ).addEventListener( 'change', handleFileSelect, false );
+			document.getElementById('files').addEventListener('change', handleFileSelect, false);
 		</script>
 	</body>
 </html>

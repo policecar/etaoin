@@ -20,6 +20,15 @@ p = function() {
 	p.processFileContent = function( textString ) {
 
 		var lines = textString.split( '\n' );
+		return p.processContent( lines );
+	};
+
+	p.processSearchResults = function( resultsArray ) {
+
+		return p.processContent( resultsArray );
+	};
+
+	p.processContent = function( contentArray ) {
 
 		var items = {};
 		var nodes = {};
@@ -27,11 +36,17 @@ p = function() {
 		var labelAnchors = [];
 		var labelAnchorLinks = [];
 
-		for ( var i = 0, l; l = lines[i]; i++ ) {
+		var maxCount = 0;
+
+		for ( var i = 0, l; l = contentArray[i]; i++ ) {
 			
 			// split into tokens
 			var tokens = l.split(' ');
 			var count = tokens[ tokens.length-1 ];
+
+			if (parseInt(count) > maxCount) {
+				maxCount = parseInt(count);
+			}
 			
 			var prev = null;
 			var node = null;
@@ -105,6 +120,7 @@ p = function() {
 		items.labelAnchors = labelAnchors;
 		items.labelAnchorLinks = labelAnchorLinks;
 		items.links = linkArray;
+		items.maxCount = maxCount;
 
 		return items;
 	};
@@ -115,12 +131,13 @@ p = function() {
 		var links = data.links;
 		var labelAnchors = data.labelAnchors;
 		var labelAnchorLinks = data.labelAnchorLinks;
+		var maxCount = data.maxCount;
 
 		// var w = 960, h = 500;
 		var w = screen.width, h = screen.height;
 
 		var labelDistance = 0;
-		var vis = d3.select("body").append("svg:svg").attr("width", w).attr("height", h);
+		var vis = d3.select("#display").append("svg:svg").attr("width", w).attr("height", h);
 
 		// original settings: gravity 1, linkDistance 50, charge -3000
 		var force = d3.layout.force().size([w, h]).nodes(nodes).links(links)
@@ -135,16 +152,16 @@ p = function() {
 		force2.start();
 
 		var link = vis.selectAll("line.link").data(links).enter().append("svg:line").attr("class", "link")
-			.style("stroke", "#CCC"); //.style("stroke-width", "2");
+			.style("stroke", "#CCC"); //.style("stroke", "#CCC").style("stroke-width", "2");
 
-		// n-gram count visualization
-		// assumes that n-grams are sorted alphabetically and their counts normalized
-		link.style("stroke-width", function(l, i) { // in terms of stroke-width
-			return l.count * 5;
+		// n-gram count visualization relative to maxCount observed in current data
+		// assumes that n-grams are sorted alphabetically
+		var normalizeMe = function(count) {
+			return ((count / maxCount) + 1); // potentially amplify w/ (...) * 2
+		};
+		link.style("stroke-width", function(l, i) {
+			return normalizeMe(parseInt(l.count));
 		});
-		// link.style("stroke", function(l, i) { // in terms of link color
-		// 	return "rgb(100, " + l.count * 255 + ", 200)";
-		// });
 
 		var node = vis.selectAll("g.node").data(force.nodes()).enter().append("svg:g").attr("class", "node");
 		node.append("svg:circle").attr("r", 5).style("fill", "#555").style("stroke", "#FFF").style("stroke-width", 3);
