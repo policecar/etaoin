@@ -3,7 +3,7 @@
 A visualization of n-grams as mini-graphs – based on [d3.js](http://d3js.org/) 
 and [force-based label placement](http://bl.ocks.org/MoritzStefaner/1377729).
 
-![sample](https://raw.github.com/policecar/scrubs/master/src/looking-at-ngrams/take.png)
+![sample](https://raw.github.com/policecar/etaoin/master/looking-at-ngrams/take.png)
 
 
 ### Usage
