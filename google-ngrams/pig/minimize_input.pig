@@ -1,5 +1,5 @@
 /*  minimize_input.pig 
-	Reduce file size by removing dispensable fields. */
+    Reduce file size by removing dispensable fields. */
 
 -- declare variable(s)
 %DECLARE BASE_DIR '/user/priska/data/experiments/nounargs';
