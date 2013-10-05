@@ -34,6 +34,9 @@ def download_syntactic_ngrams( version, corpus, path, filter ):
     pattern = r"%s/%s" % ( corpus, filter )
     corpus_path = os.path.join( path, corpus )
 
+    # if directory doesn't exist, make it
+    if not os.path.exists( corpus_path ): os.mkdir( corpus_path )
+
     # scrape relevant links from the landing /index page
     http = httplib2.Http()
     status, response = http.request( base_url + index_page )
@@ -52,7 +55,6 @@ def download_syntactic_ngrams( version, corpus, path, filter ):
                 subdir_path = os.path.join( corpus_path, whattype )
                 
                 # if directory doesn't exist, make it
-                if not os.path.exists( corpus_path ): os.mkdir( corpus_path )
                 if not os.path.exists( subdir_path ): os.mkdir( subdir_path )
                 
                 # if file doesn't exist, download it
