@@ -20,6 +20,7 @@ python download_syntactic_ngrams.py
 python download_syntactic_ngrams.py -h
 ``` 
 
+
 #### Pattern extraction from syntactic n-grams
 
 Extract patterns from Google's syntactic n-grams (tested for nounargs), e.g. 
