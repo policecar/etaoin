@@ -6,7 +6,7 @@
   */
 
 -- declare variables
-%DEFAULT BASE_DIR '/user/priska/data/experiments/nounargs';
+%DEFAULT BASE_DIR '/user/priska/data/nounargs';
 %DECLARE INPUT_DIR '$BASE_DIR/original.gz';
 %DECLARE OUTPUT_DIR '$BASE_DIR/minified.gz';
 
