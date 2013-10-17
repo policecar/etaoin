@@ -2,11 +2,12 @@
     minimize_input.pig 
   
     Reduce file size by removing dispensable fields.
-    Note: makes for 2.1G instead of 11G here.
+    Note: reduces 11G to 2.1G here.
   */
 
 -- declare variables
-%DEFAULT BASE_DIR '/user/priska/data/nounargs';
+-- %DEFAULT BASE_DIR '/mnt/hdfs/user/priska/data/nounargs'; -- local mode
+%DEFAULT BASE_DIR '/user/priska/data/nounargs'; -- mapreduce mode
 %DECLARE INPUT_DIR '$BASE_DIR/original.gz';
 %DECLARE OUTPUT_DIR '$BASE_DIR/minified.gz';
 
