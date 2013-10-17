@@ -1,28 +1,46 @@
-from pig_util import outputSchema
-import re
- 
-@outputSchema('signature:chararray')
-def signature( head, ngram ):
-    """
+#! /usr/bin/env python
+try:
+    from pig_util import outputSchema
+except ImportError:
+    from streaming.pig_util import outputSchema
 
+import re
+import extractors as extract
+
+@outputSchema('signature:chararray')
+def signature( head, ngram ): # , extractors
+    """
     """
     try:
+        head      = head
+        ngram     = ngram
         tokens    = ngram.split( ' ' )
-        head_pos  = str([ i for i,t in enumerate( tokens ) if t.startswith( head + "/" ) ][0] + 1 )
+        head_pos  = str([ i for i, t in enumerate( tokens ) if t.startswith( head + "/" )][0] + 1 )
 
-        patterns = [ 
-            r' ([\w]+)/JJ/[\w]+/%s'  %  head_pos,   # amod
-            r' ([\w]+)/VBN/[\w]+/%s' %  head_pos,   # amod, partmod, dep
-            r' ([\w]+)/NNP/[\w]+/%s' %  head_pos    # nn, amod
-        ]
-
+        extractors = extract.get_extractors()
+        # extractors = json.loads( extractors )
+        substitutions = {
+            'head' : re.escape( head ),
+            'head_pos' : head_pos,
+        }
         signature = None
-        for p in patterns:
-            match = re.search( p, ngram )
+
+        for extractor in extractors:
+            pattern = extractor.pattern.substitute( substitutions )
+            pattern = re.compile( pattern )
+            match = re.search( pattern, ngram )
             if match:
-                signature = "{___} may be %s" % match.group(1)
-        
+                # print match.group(1)
+                extractor.update( head, match )
+                signature = ( '\t' ).join([ extractor.template, extractor.factoid, extractor.tags ])
+                continue
+
         return signature
 
     except ValueError:
         return None
+
+
+if __name__ == '__main__':
+    signature( "march", 'the/DT/det/2 march/NN/dobj/0 and/CC/cc/2 their/PRP$/poss/2 body/NN/pobj/3')
+    # signature( u'o', u'foo\dbaz/NNP/nn/2 o/NNP/pobj/0' )
