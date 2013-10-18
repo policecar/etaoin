@@ -7,7 +7,7 @@
   */
 
 -- enable compression for intermediate results
-SET pig.tmpfilecompression 'true'
+SET pig.tmpfilecompression 'true';
 SET pig.tmpfilecompression.codec 'gz';
 
 -- declare variables

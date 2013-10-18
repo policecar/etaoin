@@ -12,8 +12,6 @@ def signature( head, ngram ): # , extractors
     """
     """
     try:
-        head      = head
-        ngram     = ngram
         tokens    = ngram.split( ' ' )
         head_pos  = str([ i for i, t in enumerate( tokens ) if t.startswith( head + "/" )][0] + 1 )
 
