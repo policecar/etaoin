@@ -1,7 +1,7 @@
 /** 
-    extract_signatures.pig 
+    extract_patterns.pig 
     
-    Extract signatures from syntactic n-grams; e.g.
+    Extract patterns from syntactic n-grams; e.g.
     
     becomes
     earth   {___} may be natural    16 
