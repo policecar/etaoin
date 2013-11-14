@@ -8,8 +8,8 @@
 -- declare variables
 -- %DEFAULT BASE_DIR '/mnt/hdfs/user/priska/data/nounargs'; -- local mode
 %DEFAULT BASE_DIR '/user/priska/data/nounargs'; -- mapreduce mode
-%DECLARE INPUT_DIR '$BASE_DIR/original.gz';
-%DECLARE OUTPUT_DIR '$BASE_DIR/minified.gz';
+%DEFAULT INPUT_DIR '$BASE_DIR/original.gz';
+%DEFAULT OUTPUT_DIR '$BASE_DIR/minified.gz';
 
 -- load nounargs ( from compressed files )
 ngrams = LOAD '$INPUT_DIR' USING PigStorage( '\t' );
