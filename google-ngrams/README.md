@@ -27,7 +27,7 @@ earth   {___} may be natural    16
 Prerequisites: Pig 0.12 or later
 
 ```bash
-cd .../etaoin/google-ngrams/pig
+cd .../etaoin/google-ngrams/pattern-extraction/pig
 
 # run locally
 pig --x local minimize_input.pig
